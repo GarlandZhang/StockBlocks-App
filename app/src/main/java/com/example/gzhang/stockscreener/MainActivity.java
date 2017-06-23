@@ -1,5 +1,7 @@
 package com.example.gzhang.stockscreener;
 
+//don't worry about these imports
+
 import android.content.Intent;
 import android.os.AsyncTask;
 import android.support.v7.app.AppCompatActivity;
@@ -14,27 +16,22 @@ import com.amazonaws.regions.Regions;
 import com.amazonaws.services.dynamodbv2.*;
 import com.amazonaws.mobileconnectors.dynamodbv2.dynamodbmapper.*;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.Serializable;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.HashMap;
-import java.util.Hashtable;
-import java.util.List;
 import java.util.Scanner;
 
 public class MainActivity extends AppCompatActivity {
 
+    //UI
     Button searchButton,
             screenerButton;
 
-    HashMap<String, Stock> stockHashMap;
-
+    //TODO: MIGHT NOT NEED THIS
+    //track if data already retrieved and uploaded into database
     boolean isDataThrown = false;
 
     @Override
@@ -42,49 +39,61 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        //initialize UI
         screenerButton = (Button) findViewById(R.id.screenerButton);
         searchButton = (Button) findViewById(R.id.searchButton);
 
-        stockHashMap = new HashMap<String, Stock>();
-
-        Intent intent = getIntent();
-
-            try {
-                //TEMPORARY
-                //isDataThrown = (boolean) intent.getExtras().get("isDataThrown");
-                if( !isDataThrown ) {
-                    getData();
-                }
-            } catch (IOException e) {
-                e.printStackTrace();
+        //check if data already fetched and uploaded. Otherwise this is first time app executes data fetching/uploading to database.
+        try {
+            Intent intent = getIntent();
+            //TODO: throwing null since extra does not exist, which is true FIRST TIME APP RUNS
+            //isDataThrown = (boolean) intent.getExtras().get("isDataThrown");
+            if( !isDataThrown ) {
+                getData();
             }
+        } catch (IOException e) { //in case shit hits the fan
+            e.printStackTrace();
         }
+    }
 
     public void getData() throws IOException {
+
+        //to format for todays date
         Calendar c = Calendar.getInstance();
         SimpleDateFormat df = new SimpleDateFormat("yyyyMMdd");
         String TODAYS_DATE = df.format(c.getTime()); //-YY//MM//DD
-        TODAYS_DATE = "20170606"; //TEMPORARY
+        TODAYS_DATE = "20170606"; //TODO: change to find previous trading day. This requires determining if weekday and if American holiday.
 
+        //url where we get daily stock info from
         String url = "https://www.quandl.com/api/v3/datatables/WIKI/PRICES.json?date=" + TODAYS_DATE + "&api_key=7hsNV69CDn_8SrPG2tqQ";
 
+        //where data will be retrieved and later uploaded to database
         new JSONTask().execute( url );
     }
 
-    public void organizeData(String dataBaseString) {
+    private void organizeData(String dataBaseString) {
 
         // Initialize the Amazon Cognito credentials provider
         CognitoCachingCredentialsProvider credentialsProvider = new CognitoCachingCredentialsProvider(
                 getApplicationContext(),
-                "us-east-2:9412c9ff-b08e-4189-8001-def0323ea1b8", // Identity Pool ID
+                "us-east-2:8c9a6d87-0e19-4e8d-9de0-76a73548db92", // Identity Pool ID
                 Regions.US_EAST_2 // Region
         );
 
-        AmazonDynamoDBClient ddbClient = new AmazonDynamoDBClient(credentialsProvider);
+        //more wonky shit
+        AmazonDynamoDBClient ddbClient = Region.getRegion(Regions.US_EAST_2)
+                .createClient(
+                        AmazonDynamoDBClient.class,
+                        credentialsProvider,
+                        new ClientConfiguration()
+                );
+
+        //this is used to store and retrieve data...think of it like a hashtable; database (DynamoDB) is designed like a hashtable
         DynamoDBMapper mapper = new DynamoDBMapper(ddbClient);
 
-
+        //extract data
         while (!dataBaseString.isEmpty()) {
+
             int lowIndex = dataBaseString.indexOf("[");
             int highIndex = dataBaseString.indexOf("]");
 
@@ -93,26 +102,16 @@ public class MainActivity extends AppCompatActivity {
 
             Stock newStock = new Stock();
 
-            extractStockInfo(stockInfo, newStock);
+            extractStockInfo(stockInfo, newStock); //extracts and stores all important info into fields
 
-            /*
-            stockHashMap.put(newStock.getTickerSymbol(), newStock);
-            */
-
+            //Stock object is stored in database
             mapper.save( newStock );
 
-            //TEMPORARY
-            newStock = mapper.load( Stock.class, "A" );
-            System.out.println( "I DID IT " + newStock.getOpenPrice() );
-
-            //OUT OF BOUNDS???
             dataBaseString = dataBaseString.substring(highIndex + 1);
         }
-
     }
 
-
-    //enum? IMPROVE CODE
+    //TODO: nasty way of retrieving data. Try ENUM?
     private void extractStockInfo(String stockInfo, Stock newStock) {
 
         //get ticker symbol
@@ -152,26 +151,22 @@ public class MainActivity extends AppCompatActivity {
         newStock.setVolume(volume);
     }
 
+    //TODO: How to pass mapper object in order to access database in another activity
     public void onSearchClick(View view) {
 
         Intent intent = new Intent(this, SearchActivity.class);
-
-        //TEMPORARY
-        Stock A = stockHashMap.get( "A" );
-        intent.putExtra( "A", A );
         intent.putExtra( "isDataThrown", isDataThrown );
-
-        //intent.putExtra( "stockHashMap", stockHashMap );
-
 
         startActivity(intent);
     }
 
+    //TODO: Another activity (separate from stock search up) which will later be developed
     public void onScreenerClick(View view) {
 
         Intent intent = new Intent(this, ScreenerActivity.class);
     }
 
+    //how data is retrieved from url
     private class JSONTask extends AsyncTask<String, String, String> {
 
         @Override
@@ -208,15 +203,16 @@ public class MainActivity extends AppCompatActivity {
 
         @Override
         protected void onPostExecute(String dataBaseString ) {
-            //remove filler
+
+            //remove filler from formatted JSON data
             dataBaseString = dataBaseString.substring(22, dataBaseString.length() - 642);
 
-            //organizeData(dataBaseString);
-
+            //upload to database
             new JSONTask2().execute( dataBaseString );
         }
     }
 
+    //how data is uploaded to database
     private class JSONTask2 extends AsyncTask<String, String, String>
     {
 
@@ -225,46 +221,8 @@ public class MainActivity extends AppCompatActivity {
 
             String dataBaseString = params[ 0 ];
 
-            // Initialize the Amazon Cognito credentials provider
-            CognitoCachingCredentialsProvider credentialsProvider = new CognitoCachingCredentialsProvider(
-                    getApplicationContext(),
-                    "us-east-2:8c9a6d87-0e19-4e8d-9de0-76a73548db92", // Identity Pool ID
-                    Regions.US_EAST_2 // Region
-            );
-
-            AmazonDynamoDBClient ddbClient = Region.getRegion(Regions.US_EAST_2) // CRUCIAL
-                    .createClient(
-                            AmazonDynamoDBClient.class,
-                            credentialsProvider,
-                            new ClientConfiguration()
-                    );
-            DynamoDBMapper mapper = new DynamoDBMapper(ddbClient);
-
-
-            while (!dataBaseString.isEmpty()) {
-                int lowIndex = dataBaseString.indexOf("[");
-                int highIndex = dataBaseString.indexOf("]");
-
-                //gets all data between first quotation mark and before "]" sign
-                String stockInfo = dataBaseString.substring(lowIndex + 1, highIndex);
-
-                Stock newStock = new Stock();
-
-                extractStockInfo(stockInfo, newStock);
-
-            /*
-            stockHashMap.put(newStock.getTickerSymbol(), newStock);
-            */
-
-                mapper.save( newStock );
-
-                //TEMPORARY
-                newStock = mapper.load( Stock.class, "A" );
-                System.out.println( "I DID IT " + newStock.getOpenPrice() );
-
-                //OUT OF BOUNDS???
-                dataBaseString = dataBaseString.substring(highIndex + 1);
-            }
+            //organize data to properly extract and isolate stock info. Then upload to database
+            organizeData( dataBaseString );
 
             return null;
         }

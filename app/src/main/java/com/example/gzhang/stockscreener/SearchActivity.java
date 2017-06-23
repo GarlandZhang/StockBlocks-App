@@ -3,25 +3,20 @@ package com.example.gzhang.stockscreener;
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
-import android.text.Editable;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import org.w3c.dom.Text;
-
-import java.io.Serializable;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Hashtable;
 
 /**
  * Created by GZhang on 2017-06-05.
  */
 public class SearchActivity extends Activity {
 
+    //UI
     Button backButton,
            searchButton;
 
@@ -48,22 +43,11 @@ public class SearchActivity extends Activity {
 
         stockTickerET = (EditText) findViewById(R.id.stockTickerET);
 
-        Intent intent = getIntent();
-
         try
         {
-            /* TEMPORRAY
-           stockHashMap = (HashMap<String, Stock>)intent.getSerializableExtra("stockHashMap");
-            //stockHashMap = ((ArrayList<HashMap<String, Stock>>) bundle.get( "stockHashMapList" )).get( 0 );
-            Stock A = stockHashMap.get( "A" );
-            //Stock A = (Stock) bundle.get( "A" );
-            System.out.println( "HI... " + A.getOpenPrice());
-            */
+            Intent intent = getIntent();
 
-            //TEMPORARY
-            stockHashMap = new HashMap<String,Stock>();
-            Stock A = (Stock) intent.getExtras().get( "A" );
-            stockHashMap.put( A.getTickerSymbol(), A );
+            //TODO: figure out how to retrieve mapper object to get data from database
         }
         catch( Exception e )
         {
@@ -73,9 +57,7 @@ public class SearchActivity extends Activity {
 
     public void onBackPress(View view) {
 
-        Intent intent = new Intent(this, MainActivity.class);
-
-        startActivity( intent );
+        finish();
     }
 
     public void onSearchPress(View view) {
