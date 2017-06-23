@@ -30,9 +30,7 @@ public class MainActivity extends AppCompatActivity {
     Button searchButton,
             screenerButton;
 
-    //TODO: MIGHT NOT NEED THIS
-    //track if data already retrieved and uploaded into database
-    boolean isDataThrown = false;
+    DynamoDBMapper mapper;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -43,17 +41,24 @@ public class MainActivity extends AppCompatActivity {
         screenerButton = (Button) findViewById(R.id.screenerButton);
         searchButton = (Button) findViewById(R.id.searchButton);
 
-        //check if data already fetched and uploaded. Otherwise this is first time app executes data fetching/uploading to database.
-        try {
-            Intent intent = getIntent();
-            //TODO: throwing null since extra does not exist, which is true FIRST TIME APP RUNS
-            //isDataThrown = (boolean) intent.getExtras().get("isDataThrown");
-            if( !isDataThrown ) {
-                getData();
-            }
-        } catch (IOException e) { //in case shit hits the fan
-            e.printStackTrace();
-        }
+        //cluster fuck of setting up aws
+        // Initialize the Amazon Cognito credentials provider
+        CognitoCachingCredentialsProvider credentialsProvider = new CognitoCachingCredentialsProvider(
+                getApplicationContext(),
+                "us-east-2:8c9a6d87-0e19-4e8d-9de0-76a73548db92", // Identity Pool ID
+                Regions.US_EAST_2 // Region
+        );
+
+        //more wonky shit
+        AmazonDynamoDBClient ddbClient = Region.getRegion(Regions.US_EAST_2)
+                .createClient(
+                        AmazonDynamoDBClient.class,
+                        credentialsProvider,
+                        new ClientConfiguration()
+                );
+
+        //this is used to store and retrieve data...think of it like a hashtable; database (DynamoDB) is designed like a hashtable
+        mapper = new DynamoDBMapper(ddbClient);
     }
 
     public void getData() throws IOException {
@@ -73,23 +78,7 @@ public class MainActivity extends AppCompatActivity {
 
     private void organizeData(String dataBaseString) {
 
-        // Initialize the Amazon Cognito credentials provider
-        CognitoCachingCredentialsProvider credentialsProvider = new CognitoCachingCredentialsProvider(
-                getApplicationContext(),
-                "us-east-2:8c9a6d87-0e19-4e8d-9de0-76a73548db92", // Identity Pool ID
-                Regions.US_EAST_2 // Region
-        );
 
-        //more wonky shit
-        AmazonDynamoDBClient ddbClient = Region.getRegion(Regions.US_EAST_2)
-                .createClient(
-                        AmazonDynamoDBClient.class,
-                        credentialsProvider,
-                        new ClientConfiguration()
-                );
-
-        //this is used to store and retrieve data...think of it like a hashtable; database (DynamoDB) is designed like a hashtable
-        DynamoDBMapper mapper = new DynamoDBMapper(ddbClient);
 
         //extract data
         while (!dataBaseString.isEmpty()) {
