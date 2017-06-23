@@ -7,12 +7,12 @@ import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
 
+import com.amazonaws.ClientConfiguration;
 import com.amazonaws.auth.CognitoCachingCredentialsProvider;
-import com.amazonaws.mobileconnectors.s3.transferutility.TransferObserver;
-import com.amazonaws.mobileconnectors.s3.transferutility.TransferUtility;
+import com.amazonaws.regions.Region;
 import com.amazonaws.regions.Regions;
-import com.amazonaws.services.s3.AmazonS3;
-import com.amazonaws.services.s3.AmazonS3Client;
+import com.amazonaws.services.dynamodbv2.*;
+import com.amazonaws.mobileconnectors.dynamodbv2.dynamodbmapper.*;
 
 import java.io.File;
 import java.io.IOException;
@@ -35,6 +35,8 @@ public class MainActivity extends AppCompatActivity {
 
     HashMap<String, Stock> stockHashMap;
 
+    boolean isDataThrown = false;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -45,12 +47,18 @@ public class MainActivity extends AppCompatActivity {
 
         stockHashMap = new HashMap<String, Stock>();
 
-        try {
-            getData();
-        } catch (IOException e) {
-            e.printStackTrace();
+        Intent intent = getIntent();
+
+            try {
+                //TEMPORARY
+                //isDataThrown = (boolean) intent.getExtras().get("isDataThrown");
+                if( !isDataThrown ) {
+                    getData();
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
-    }
 
     public void getData() throws IOException {
         Calendar c = Calendar.getInstance();
@@ -64,30 +72,16 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void organizeData(String dataBaseString) {
-        /*
 
         // Initialize the Amazon Cognito credentials provider
         CognitoCachingCredentialsProvider credentialsProvider = new CognitoCachingCredentialsProvider(
                 getApplicationContext(),
-                "us-east-2:21cb7913-0313-489d-9d1a-9770f893d803", // Identity Pool ID
-                Regions.US_EAST_1 // Region
-                //**ORIGINALLY US_EAST_2
+                "us-east-2:9412c9ff-b08e-4189-8001-def0323ea1b8", // Identity Pool ID
+                Regions.US_EAST_2 // Region
         );
 
-        AmazonS3 s3 = new AmazonS3Client(credentialsProvider);
-        TransferUtility transferUtility = new TransferUtility(s3, getApplicationContext());
-
-        String MY_BUCKET = "";
-        String OBJECT_KEY = "QCOMstock";
-        File file = new File("stockInfo.txt");
-
-        TransferObserver observer = transferUtility.upload(
-                MY_BUCKET,     /* The bucket to upload to /
-                OBJECT_KEY,    /* The key for the uploaded object /
-                MY_FILE        /* The file where the data to upload exists /
-        );
-
-        */
+        AmazonDynamoDBClient ddbClient = new AmazonDynamoDBClient(credentialsProvider);
+        DynamoDBMapper mapper = new DynamoDBMapper(ddbClient);
 
 
         while (!dataBaseString.isEmpty()) {
@@ -101,7 +95,15 @@ public class MainActivity extends AppCompatActivity {
 
             extractStockInfo(stockInfo, newStock);
 
+            /*
             stockHashMap.put(newStock.getTickerSymbol(), newStock);
+            */
+
+            mapper.save( newStock );
+
+            //TEMPORARY
+            newStock = mapper.load( Stock.class, "A" );
+            System.out.println( "I DID IT " + newStock.getOpenPrice() );
 
             //OUT OF BOUNDS???
             dataBaseString = dataBaseString.substring(highIndex + 1);
@@ -157,6 +159,7 @@ public class MainActivity extends AppCompatActivity {
         //TEMPORARY
         Stock A = stockHashMap.get( "A" );
         intent.putExtra( "A", A );
+        intent.putExtra( "isDataThrown", isDataThrown );
 
         //intent.putExtra( "stockHashMap", stockHashMap );
 
@@ -208,7 +211,63 @@ public class MainActivity extends AppCompatActivity {
             //remove filler
             dataBaseString = dataBaseString.substring(22, dataBaseString.length() - 642);
 
-            organizeData(dataBaseString);
+            //organizeData(dataBaseString);
+
+            new JSONTask2().execute( dataBaseString );
         }
     }
+
+    private class JSONTask2 extends AsyncTask<String, String, String>
+    {
+
+        @Override
+        protected String doInBackground(String... params) {
+
+            String dataBaseString = params[ 0 ];
+
+            // Initialize the Amazon Cognito credentials provider
+            CognitoCachingCredentialsProvider credentialsProvider = new CognitoCachingCredentialsProvider(
+                    getApplicationContext(),
+                    "us-east-2:8c9a6d87-0e19-4e8d-9de0-76a73548db92", // Identity Pool ID
+                    Regions.US_EAST_2 // Region
+            );
+
+            AmazonDynamoDBClient ddbClient = Region.getRegion(Regions.US_EAST_2) // CRUCIAL
+                    .createClient(
+                            AmazonDynamoDBClient.class,
+                            credentialsProvider,
+                            new ClientConfiguration()
+                    );
+            DynamoDBMapper mapper = new DynamoDBMapper(ddbClient);
+
+
+            while (!dataBaseString.isEmpty()) {
+                int lowIndex = dataBaseString.indexOf("[");
+                int highIndex = dataBaseString.indexOf("]");
+
+                //gets all data between first quotation mark and before "]" sign
+                String stockInfo = dataBaseString.substring(lowIndex + 1, highIndex);
+
+                Stock newStock = new Stock();
+
+                extractStockInfo(stockInfo, newStock);
+
+            /*
+            stockHashMap.put(newStock.getTickerSymbol(), newStock);
+            */
+
+                mapper.save( newStock );
+
+                //TEMPORARY
+                newStock = mapper.load( Stock.class, "A" );
+                System.out.println( "I DID IT " + newStock.getOpenPrice() );
+
+                //OUT OF BOUNDS???
+                dataBaseString = dataBaseString.substring(highIndex + 1);
+            }
+
+            return null;
+        }
+    }
+
 }

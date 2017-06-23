@@ -1,11 +1,17 @@
 package com.example.gzhang.stockscreener;
 
+import com.amazonaws.mobileconnectors.dynamodbv2.dynamodbmapper.DynamoDBAttribute;
+import com.amazonaws.mobileconnectors.dynamodbv2.dynamodbmapper.DynamoDBHashKey;
+import com.amazonaws.mobileconnectors.dynamodbv2.dynamodbmapper.DynamoDBIndexHashKey;
+import com.amazonaws.mobileconnectors.dynamodbv2.dynamodbmapper.DynamoDBIndexRangeKey;
+import com.amazonaws.mobileconnectors.dynamodbv2.dynamodbmapper.DynamoDBTable;
+
 import java.io.Serializable;
 
 /**
  * Created by GZhang on 2017-06-07.
  */
-
+@DynamoDBTable(tableName = "Stocks")
 public class Stock implements Serializable{
 
     String tickerSymbol;
@@ -20,11 +26,6 @@ public class Stock implements Serializable{
     public Stock()
     {
 
-    }
-
-    public String getTickerSymbol() {
-        // TODO Auto-generated method stub
-        return tickerSymbol;
     }
 
     public void setTickerSymbol(String tickerSymbol) {
@@ -51,22 +52,33 @@ public class Stock implements Serializable{
         this.volume = volume;
     }
 
+    @DynamoDBHashKey(attributeName = "Ticker Symbol")
+    public String getTickerSymbol() {
+        // TODO Auto-generated method stub
+        return tickerSymbol;
+    }
+
+    @DynamoDBAttribute(attributeName = "Open")
     public double getOpenPrice() {
         return openPrice;
     }
 
+    @DynamoDBAttribute(attributeName = "High")
     public double getHighPrice() {
         return highPrice;
     }
 
+    @DynamoDBAttribute(attributeName = "Low")
     public double getLowPrice() {
         return lowPrice;
     }
 
+    @DynamoDBAttribute(attributeName = "Close")
     public double getClosePrice() {
         return closePrice;
     }
 
+    @DynamoDBAttribute(attributeName = "Volume")
     public long getVolume() {
         return volume;
     }
