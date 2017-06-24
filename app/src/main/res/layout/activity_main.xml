@@ -38,4 +38,11 @@
         android:id="@+id/screenerButton"
         android:onClick="onScreenerClick"/>
 
+    <Button
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="ABOUT"
+        android:id="@+id/aboutButton"
+        android:onClick="onAboutClick"/>
+
 </LinearLayout>

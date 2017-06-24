@@ -24,6 +24,13 @@ import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Scanner;
 
+/*TODO: Future improvements
+* 24 hour alert to update data.
+* user log-in
+* Real-time stock scanner for news/information
+*   ie: a news article mentioning "earnings" for "APPL".
+* */
+
 public class MainActivity extends AppCompatActivity {
 
     //UI
@@ -42,8 +49,8 @@ public class MainActivity extends AppCompatActivity {
         searchButton = (Button) findViewById(R.id.searchButton);
 
         //cluster fuck of setting up aws
-        // Initialize the Amazon Cognito credentials provider
-        CognitoCachingCredentialsProvider credentialsProvider = new CognitoCachingCredentialsProvider(
+            // Initialize the Amazon Cognito credentials provider
+            CognitoCachingCredentialsProvider credentialsProvider = new CognitoCachingCredentialsProvider(
                 getApplicationContext(),
                 "us-east-2:8c9a6d87-0e19-4e8d-9de0-76a73548db92", // Identity Pool ID
                 Regions.US_EAST_2 // Region
@@ -59,14 +66,20 @@ public class MainActivity extends AppCompatActivity {
 
         //this is used to store and retrieve data...think of it like a hashtable; database (DynamoDB) is designed like a hashtable
         mapper = new DynamoDBMapper(ddbClient);
+
+        //retrieve data
+        try {
+            //TODO: TEMPORARY
+            //getData();
+        }catch ( Exception e )
+        {
+            e.printStackTrace();
+        }
     }
 
     public void getData() throws IOException {
 
-        //to format for todays date
-        Calendar c = Calendar.getInstance();
-        SimpleDateFormat df = new SimpleDateFormat("yyyyMMdd");
-        String TODAYS_DATE = df.format(c.getTime()); //-YY//MM//DD
+        String TODAYS_DATE = getLastTradingDate();
         TODAYS_DATE = "20170606"; //TODO: change to find previous trading day. This requires determining if weekday and if American holiday.
 
         //url where we get daily stock info from
@@ -77,8 +90,6 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void organizeData(String dataBaseString) {
-
-
 
         //extract data
         while (!dataBaseString.isEmpty()) {
@@ -144,8 +155,6 @@ public class MainActivity extends AppCompatActivity {
     public void onSearchClick(View view) {
 
         Intent intent = new Intent(this, SearchActivity.class);
-        intent.putExtra( "isDataThrown", isDataThrown );
-
         startActivity(intent);
     }
 
@@ -155,8 +164,26 @@ public class MainActivity extends AppCompatActivity {
         Intent intent = new Intent(this, ScreenerActivity.class);
     }
 
+    //TODO: Fix
+    public String getLastTradingDate() {
+
+        //to format for todays date
+        Calendar c = Calendar.getInstance();
+        SimpleDateFormat df = new SimpleDateFormat("yyyyMMdd");
+        String TODAYS_DATE = df.format(c.getTime()); //-YY//MM//DD
+
+
+        return TODAYS_DATE;
+    }
+
+    public void onAboutClick(View view) {
+
+        Intent intent = new Intent( this, AboutActivity.class );
+        startActivity( intent );
+    }
+
     //how data is retrieved from url
-    private class JSONTask extends AsyncTask<String, String, String> {
+    private class JSONTask extends AsyncTask<String, Void, String> {
 
         @Override
         protected String doInBackground(String... params) {
@@ -202,11 +229,11 @@ public class MainActivity extends AppCompatActivity {
     }
 
     //how data is uploaded to database
-    private class JSONTask2 extends AsyncTask<String, String, String>
+    private class JSONTask2 extends AsyncTask<String, Void, Void>
     {
 
         @Override
-        protected String doInBackground(String... params) {
+        protected Void doInBackground(String... params) {
 
             String dataBaseString = params[ 0 ];
 
@@ -216,5 +243,4 @@ public class MainActivity extends AppCompatActivity {
             return null;
         }
     }
-
 }
