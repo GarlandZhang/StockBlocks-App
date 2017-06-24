@@ -1,12 +1,16 @@
 package com.example.gzhang.stockscreener;
 
 import android.app.Activity;
-import android.content.Intent;
+
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -16,6 +20,19 @@ import com.amazonaws.mobileconnectors.dynamodbv2.dynamodbmapper.DynamoDBMapper;
 import com.amazonaws.regions.Region;
 import com.amazonaws.regions.Regions;
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClient;
+
+import java.io.InputStream;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Attributes;
+import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
+import org.jsoup.select.Elements;
 
 /**
  * Created by GZhang on 2017-06-05.
@@ -29,6 +46,8 @@ public class SearchActivity extends Activity {
     TextView openPriceTV, highPriceTV, lowPriceTV, closePriceTV, volumeTV;
 
     EditText stockTickerET;
+
+    ImageView stockChartIV, logoIV;
 
     DynamoDBMapper mapper;
 
@@ -48,6 +67,9 @@ public class SearchActivity extends Activity {
         volumeTV = (TextView) findViewById(R.id.volumeTV);
 
         stockTickerET = (EditText) findViewById(R.id.stockTickerET);
+
+        stockChartIV = (ImageView) findViewById(R.id.stockChartIV);
+        logoIV = (ImageView) findViewById(R.id.logoIV);
 
         //TODO: condense code...pass mapper object through activities without writing this over and over again
         // Initialize the Amazon Cognito credentials provider
@@ -99,12 +121,70 @@ public class SearchActivity extends Activity {
                 closePriceTV.setText("Close: " + Double.toString(theStock.getClosePrice()));
                 volumeTV.setText("Volume: " + Long.toString(theStock.getVolume()));
 
+                //load stock chart
+                new JSONTask2().execute( theStock.getTickerSymbol() );
+
                 Toast.makeText( getApplicationContext(), "Here is your quote!", Toast.LENGTH_SHORT).show();
             }
             else
             {
                 Toast.makeText( getApplicationContext(), "PSYCHE, THAT'S THE WRONG SYMBOL!", Toast.LENGTH_LONG).show();
             }
+        }
+    }
+
+    //TODO: fix this inefficient use of AsyncTask. *Note: WHY IS IT CALLED JSONTASK STILL.... ITS NOT EVEN JSON RELATED.
+    private class JSONTask2 extends AsyncTask< String, Void, Bitmap >
+    {
+
+        @Override
+        protected Bitmap doInBackground(String... params) {
+            try {
+
+                String webSiteURL = "http://www.nasdaq.com/symbol/" + params[ 0 ].toLowerCase() + "/stock-chart?intraday=on&timeframe=intra&splits=off&earnings=off&movingaverage=None&lowerstudy=volume&comparison=off&index=&drilldown=off";
+
+                //Connect to the website and get the html
+                Document doc = Jsoup.connect(webSiteURL).get();
+
+                //Get all elements with img tag ,
+                Elements img = doc.getElementsByTag("img");
+
+                Element el = img.get( 4 );
+
+                if( !el.absUrl( "src" ).contains( "http://charting.nasdaq.com" ) )
+                {
+                    el = img.get( 3 );
+                }
+                //for each element get the srs url
+                String src = el.absUrl("src");
+
+                Bitmap bitmap = null;
+
+                try {
+                    URL urlConnection = new URL( src );
+                    HttpURLConnection connection = (HttpURLConnection) urlConnection.openConnection();
+                    connection.setDoInput( true );
+                    InputStream in = connection.getInputStream();
+                    bitmap = BitmapFactory.decodeStream(in);
+
+                } catch (Exception e) {
+                    Log.e("Error", e.getMessage());
+                    e.printStackTrace();
+                }
+
+                return bitmap;
+
+            }catch( Exception e )
+            {
+                e.printStackTrace();
+            }
+
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(Bitmap bitmap) {
+                stockChartIV.setImageBitmap( bitmap );
         }
     }
 }

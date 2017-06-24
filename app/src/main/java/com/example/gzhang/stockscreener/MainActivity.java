@@ -83,10 +83,10 @@ public class MainActivity extends AppCompatActivity {
         TODAYS_DATE = "20170606"; //TODO: change to find previous trading day. This requires determining if weekday and if American holiday.
 
         //url where we get daily stock info from
-        String url = "https://www.quandl.com/api/v3/datatables/WIKI/PRICES.json?date=" + TODAYS_DATE + "&api_key=7hsNV69CDn_8SrPG2tqQ";
+        String URL = "https://www.quandl.com/api/v3/datatables/WIKI/PRICES.json?date=" + TODAYS_DATE + "&api_key=7hsNV69CDn_8SrPG2tqQ";
 
         //where data will be retrieved and later uploaded to database
-        new JSONTask().execute( url );
+        new JSONTask().execute( URL );
     }
 
     private void organizeData(String dataBaseString) {
