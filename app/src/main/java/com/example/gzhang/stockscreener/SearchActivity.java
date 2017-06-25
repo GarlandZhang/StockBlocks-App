@@ -43,7 +43,7 @@ public class SearchActivity extends Activity {
     Button backButton,
            searchButton;
 
-    TextView openPriceTV, highPriceTV, lowPriceTV, closePriceTV, volumeTV;
+    TextView openPriceTV, highPriceTV, lowPriceTV, closePriceTV, volumeTV, quoteTitleTV;
 
     EditText stockTickerET;
 
@@ -65,6 +65,7 @@ public class SearchActivity extends Activity {
         lowPriceTV = (TextView) findViewById(R.id.lowPriceTV);
         closePriceTV = (TextView) findViewById(R.id.closePriceTV);
         volumeTV = (TextView) findViewById(R.id.volumeTV);
+        quoteTitleTV = (TextView) findViewById(R.id.quoteTitleTV);
 
         stockTickerET = (EditText) findViewById(R.id.stockTickerET);
 
@@ -123,6 +124,7 @@ public class SearchActivity extends Activity {
 
                 //load stock chart
                 new JSONTask2().execute( theStock.getTickerSymbol() );
+                new JSONTask3().execute( theStock.getTickerSymbol() );
 
                 Toast.makeText( getApplicationContext(), "Here is your quote!", Toast.LENGTH_SHORT).show();
             }
@@ -185,6 +187,36 @@ public class SearchActivity extends Activity {
         @Override
         protected void onPostExecute(Bitmap bitmap) {
                 stockChartIV.setImageBitmap( bitmap );
+        }
+    }
+
+    private class JSONTask3 extends AsyncTask<String, Void, String>
+    {
+
+        @Override
+        protected String doInBackground(String... params) {
+
+            try
+            {
+                Document doc = Jsoup.connect("https://finance.yahoo.com/quote/" + params[ 0 ] ).get();
+                String title = doc.title();
+                title = title.substring( title.indexOf( "for" ) + 4, title.lastIndexOf( '-' ) );
+
+                return title;
+
+            }catch( Exception e )
+            {
+                e.printStackTrace();
+            }
+
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(String title ) {
+
+            quoteTitleTV.setText( title );
+
         }
     }
 }
