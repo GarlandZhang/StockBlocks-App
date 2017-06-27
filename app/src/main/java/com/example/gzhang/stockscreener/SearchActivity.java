@@ -101,10 +101,10 @@ public class SearchActivity extends Activity {
 
         String tickerSymbol = stockTickerET.getText().toString().toUpperCase();
 
-        new JSONTask().execute( tickerSymbol );
+        new DataDisplayer().execute( tickerSymbol );
     }
 
-    private class JSONTask extends AsyncTask<String, Void, Stock> {
+    private class DataDisplayer extends AsyncTask<String, Void, Stock> {
 
         @Override
         protected Stock doInBackground(String... params) {
@@ -115,18 +115,22 @@ public class SearchActivity extends Activity {
         protected void onPostExecute(Stock stock) {
             Stock theStock = stock;
 
-            if( theStock != null ) {
+            if( theStock != null && !quoteTitleTV.getText().toString().equals( theStock.getName() ) ) {
                 openPriceTV.setText("Open: " + Double.toString(theStock.getOpenPrice()));
                 highPriceTV.setText("High: " + Double.toString(theStock.getHighPrice()));
                 lowPriceTV.setText("Low: " + Double.toString(theStock.getLowPrice()));
                 closePriceTV.setText("Close: " + Double.toString(theStock.getClosePrice()));
                 volumeTV.setText("Volume: " + Long.toString(theStock.getVolume()));
+                quoteTitleTV.setText( theStock.getName() );
 
                 //load stock chart
-                new JSONTask2().execute( theStock.getTickerSymbol() );
-                new JSONTask3().execute( theStock.getTickerSymbol() );
+                new ChartAndLogoRetriever().execute( theStock.getTickerSymbol() );
 
-                Toast.makeText( getApplicationContext(), "Here is your quote!", Toast.LENGTH_SHORT).show();
+                Toast.makeText( getApplicationContext(), "Here is the quote for: " + theStock.getTickerSymbol() + ".", Toast.LENGTH_SHORT).show();
+            }
+            else if( quoteTitleTV.getText().toString().equals( theStock.getName() ) )
+            {
+                Toast.makeText( getApplicationContext(), "Current data shown is the quote for: " + theStock.getTickerSymbol() + ".", Toast.LENGTH_LONG).show();
             }
             else
             {
@@ -135,15 +139,16 @@ public class SearchActivity extends Activity {
         }
     }
 
-    //TODO: fix this inefficient use of AsyncTask. *Note: WHY IS IT CALLED JSONTASK STILL.... ITS NOT EVEN JSON RELATED.
-    private class JSONTask2 extends AsyncTask< String, Void, Bitmap >
+
+    //TODO: fix this inefficient use of AsyncTask. *Note: WHY IS IT CALLED DataDisplayer STILL.... ITS NOT EVEN JSON RELATED.
+    private class ChartAndLogoRetriever extends AsyncTask< String, Void, Bitmap[] >
     {
 
         @Override
-        protected Bitmap doInBackground(String... params) {
+        protected Bitmap[] doInBackground(String... params) {
             try {
 
-                String webSiteURL = "http://www.nasdaq.com/symbol/" + params[ 0 ].toLowerCase() + "/stock-chart?intraday=on&timeframe=intra&splits=off&earnings=off&movingaverage=None&lowerstudy=volume&comparison=off&index=&drilldown=off";
+                String webSiteURL = "http://www.nasdaq.com/symbol/" + params[0].toLowerCase() + "/stock-chart?intraday=on&timeframe=intra&splits=off&earnings=off&movingaverage=None&lowerstudy=volume&comparison=off&index=&drilldown=off";
 
                 //Connect to the website and get the html
                 Document doc = Jsoup.connect(webSiteURL).get();
@@ -151,31 +156,24 @@ public class SearchActivity extends Activity {
                 //Get all elements with img tag ,
                 Elements img = doc.getElementsByTag("img");
 
-                Element el = img.get( 4 );
+                Element el = img.get(3);
 
-                if( !el.absUrl( "src" ).contains( "http://charting.nasdaq.com" ) )
+                Bitmap[] bitmaps = new Bitmap[ 2 ];
+                
+                if (!el.absUrl("src").contains("http://charting.nasdaq.com")) {
+
+                    bitmaps[1] = getBitmap(el);
+                    el = img.get(4);
+                }
+                else
                 {
-                    el = img.get( 3 );
-                }
-                //for each element get the srs url
-                String src = el.absUrl("src");
-
-                Bitmap bitmap = null;
-
-                try {
-                    URL urlConnection = new URL( src );
-                    HttpURLConnection connection = (HttpURLConnection) urlConnection.openConnection();
-                    connection.setDoInput( true );
-                    InputStream in = connection.getInputStream();
-                    bitmap = BitmapFactory.decodeStream(in);
-
-                } catch (Exception e) {
-                    Log.e("Error", e.getMessage());
-                    e.printStackTrace();
+                    bitmaps[ 1 ] = null;
                 }
 
-                return bitmap;
+                bitmaps[0] = getBitmap(el);
 
+                return bitmaps;
+            
             }catch( Exception e )
             {
                 e.printStackTrace();
@@ -184,13 +182,43 @@ public class SearchActivity extends Activity {
             return null;
         }
 
+        private Bitmap getBitmap(Element el) {
+            //for each element get the srs url
+            String src = el.absUrl("src");
+
+            Bitmap bitmap = null;
+
+            try {
+                URL urlConnection = new URL( src );
+                HttpURLConnection connection = (HttpURLConnection) urlConnection.openConnection();
+                connection.setDoInput( true );
+                InputStream in = connection.getInputStream();
+                bitmap = BitmapFactory.decodeStream(in);
+
+            } catch (Exception e) {
+                Log.e("Error", e.getMessage());
+                e.printStackTrace();
+            }
+
+            return bitmap;
+        }
+
         @Override
-        protected void onPostExecute(Bitmap bitmap) {
-                stockChartIV.setImageBitmap( bitmap );
+        protected void onPostExecute(Bitmap[] bitmaps ) {
+            stockChartIV.setImageBitmap( bitmaps[ 0 ] );
+            
+            if( bitmaps[ 1 ] != null )
+            {
+                logoIV.setImageBitmap( bitmaps[ 1 ] );
+            }
+            else
+            {
+                logoIV.setImageBitmap( null );
+            }
         }
     }
-
-    private class JSONTask3 extends AsyncTask<String, Void, String>
+/*
+    private class NameRetriever extends AsyncTask<String, Void, String>
     {
 
         @Override
@@ -219,4 +247,5 @@ public class SearchActivity extends Activity {
 
         }
     }
+    */
 }

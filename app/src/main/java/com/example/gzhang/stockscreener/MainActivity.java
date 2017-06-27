@@ -37,7 +37,7 @@ public class MainActivity extends AppCompatActivity {
     Button searchButton,
             screenerButton;
 
-    DynamoDBMapper mapper;
+    //DynamoDBMapper mapper;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -48,7 +48,8 @@ public class MainActivity extends AppCompatActivity {
         screenerButton = (Button) findViewById(R.id.screenerButton);
         searchButton = (Button) findViewById(R.id.searchButton);
 
-        //cluster fuck of setting up aws
+        /*
+        //AWS setup
             // Initialize the Amazon Cognito credentials provider
             CognitoCachingCredentialsProvider credentialsProvider = new CognitoCachingCredentialsProvider(
                 getApplicationContext(),
@@ -56,13 +57,13 @@ public class MainActivity extends AppCompatActivity {
                 Regions.US_EAST_2 // Region
         );
 
-        //more wonky shit
-        AmazonDynamoDBClient ddbClient = Region.getRegion(Regions.US_EAST_2)
-                .createClient(
-                        AmazonDynamoDBClient.class,
-                        credentialsProvider,
-                        new ClientConfiguration()
-                );
+        
+            AmazonDynamoDBClient ddbClient = Region.getRegion(Regions.US_EAST_2)
+                    .createClient(
+                            AmazonDynamoDBClient.class,
+                            credentialsProvider,
+                            new ClientConfiguration()
+                    );
 
         //this is used to store and retrieve data...think of it like a hashtable; database (DynamoDB) is designed like a hashtable
         mapper = new DynamoDBMapper(ddbClient);
@@ -70,14 +71,17 @@ public class MainActivity extends AppCompatActivity {
         //retrieve data
         try {
             //TODO: TEMPORARY
-            //getData();
+            getAndStoreData();
         }catch ( Exception e )
         {
             e.printStackTrace();
         }
+        */
+
     }
 
-    public void getData() throws IOException {
+/*
+    public void getAndStoreData() throws IOException {
 
         String TODAYS_DATE = getLastTradingDate();
         TODAYS_DATE = "20170606"; //TODO: change to find previous trading day. This requires determining if weekday and if American holiday.
@@ -86,7 +90,7 @@ public class MainActivity extends AppCompatActivity {
         String URL = "https://www.quandl.com/api/v3/datatables/WIKI/PRICES.json?date=" + TODAYS_DATE + "&api_key=7hsNV69CDn_8SrPG2tqQ";
 
         //where data will be retrieved and later uploaded to database
-        new JSONTask().execute( URL );
+        new DataRetriever().execute( URL );
     }
 
     private void organizeData(String dataBaseString) {
@@ -95,10 +99,10 @@ public class MainActivity extends AppCompatActivity {
         while (!dataBaseString.isEmpty()) {
 
             int lowIndex = dataBaseString.indexOf("[");
-            int highIndex = dataBaseString.indexOf("]");
+            int highIndex = dataBaseString.indexOf("]") + 1;
 
-            //gets all data between first quotation mark and before "]" sign
-            String stockInfo = dataBaseString.substring(lowIndex + 1, highIndex);
+            //gets all data between two brackets
+            String stockInfo = dataBaseString.substring(lowIndex, highIndex);
 
             Stock newStock = new Stock();
 
@@ -107,6 +111,7 @@ public class MainActivity extends AppCompatActivity {
             //Stock object is stored in database
             mapper.save( newStock );
 
+            //gets data after this set and comma
             dataBaseString = dataBaseString.substring(highIndex + 1);
         }
     }
@@ -114,12 +119,15 @@ public class MainActivity extends AppCompatActivity {
     //TODO: nasty way of retrieving data. Try ENUM?
     private void extractStockInfo(String stockInfo, Stock newStock) {
 
-        //get ticker symbol
+        //remove redundant quotes
+        stockInfo = stockInfo.replace( "\"", "" );
 
-        int index = stockInfo.substring(1).indexOf('"') + 1;
-        String tickerSymbol = stockInfo.substring(1, index);
+        //get ticker symbol
+        int index = stockInfo.indexOf( ',' );
+        String tickerSymbol = stockInfo.substring(1, index); //after '[' and before first ','
         newStock.setTickerSymbol(tickerSymbol);
-        stockInfo = stockInfo.substring( stockInfo.lastIndexOf( '"' ) + 2 );
+        stockInfo = stockInfo.substring( index + 1 ); //update to be string after ','
+        stockInfo = stockInfo.substring( stockInfo.indexOf( ',' ) + 1 ); //update to be string after ','
 
         //get open price
         index = stockInfo.indexOf(',');
@@ -151,19 +159,6 @@ public class MainActivity extends AppCompatActivity {
         newStock.setVolume(volume);
     }
 
-    //TODO: How to pass mapper object in order to access database in another activity
-    public void onSearchClick(View view) {
-
-        Intent intent = new Intent(this, SearchActivity.class);
-        startActivity(intent);
-    }
-
-    //TODO: Another activity (separate from stock search up) which will later be developed
-    public void onScreenerClick(View view) {
-
-        Intent intent = new Intent(this, ScreenerActivity.class);
-    }
-
     //TODO: Fix
     public String getLastTradingDate() {
 
@@ -176,14 +171,8 @@ public class MainActivity extends AppCompatActivity {
         return TODAYS_DATE;
     }
 
-    public void onAboutClick(View view) {
-
-        Intent intent = new Intent( this, AboutActivity.class );
-        startActivity( intent );
-    }
-
     //how data is retrieved from url
-    private class JSONTask extends AsyncTask<String, Void, String> {
+    private class DataRetriever extends AsyncTask<String, Void, String> {
 
         @Override
         protected String doInBackground(String... params) {
@@ -224,12 +213,12 @@ public class MainActivity extends AppCompatActivity {
             dataBaseString = dataBaseString.substring(22, dataBaseString.length() - 642);
 
             //upload to database
-            new JSONTask2().execute( dataBaseString );
+            new DataUploader().execute( dataBaseString );
         }
     }
 
     //how data is uploaded to database
-    private class JSONTask2 extends AsyncTask<String, Void, Void>
+    private class DataUploader extends AsyncTask<String, Void, Void>
     {
 
         @Override
@@ -243,4 +232,26 @@ public class MainActivity extends AppCompatActivity {
             return null;
         }
     }
+    */
+
+    //TODO: How to pass mapper object in order to access database in another activity
+    public void onSearchClick(View view) {
+
+        Intent intent = new Intent(this, SearchActivity.class);
+        startActivity(intent);
+    }
+
+    //TODO: Another activity (separate from stock search up) which will later be developed
+    public void onScreenerClick(View view) {
+
+        Intent intent = new Intent(this, ScreenerActivity.class);
+        startActivity( intent );
+    }
+
+    public void onAboutClick(View view) {
+
+        Intent intent = new Intent( this, AboutActivity.class );
+        startActivity( intent );
+    }
+
 }

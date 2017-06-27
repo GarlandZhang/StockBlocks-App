@@ -18,6 +18,7 @@ public class Stock{
     double lowPrice;
     double closePrice;
     long volume;
+    String name;
 
     //String information --> format: ["A","2017-06-06",60.14,60.545,60.1,60.1,1966245.0,0.0,1.0,60.14,60.545,60.1,60.1,1966245.0],["AA","2017-06-06",33.11,33.49,32.78,32.94,2295347.0,0.0,1.0,33.11,33.49,32.78,32.94,2295347.0]
     public Stock()
@@ -67,6 +68,8 @@ public class Stock{
         this.volume = volume;
     }
 
+    public void setName( String name ) { this.name = name; }
+
     //getters
     @DynamoDBHashKey(attributeName = "Ticker Symbol")
     public String getTickerSymbol() {
@@ -97,4 +100,10 @@ public class Stock{
     public long getVolume() {
         return volume;
     }
+
+    @DynamoDBAttribute(attributeName = "Name")
+    public String getName() {
+        return name;
+    }
+
 }
