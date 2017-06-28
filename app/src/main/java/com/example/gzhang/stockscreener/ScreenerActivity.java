@@ -20,6 +20,37 @@ public class ScreenerActivity extends Activity{
         finish();
     }
 
+    public void onTopGainsPresrs(View view) {
+
+    }
+
+    public void onOpenChangePress(View view) {
+
+        //TODO: temporary settings
+        String positiveOrNegative = "POSITIVE";
+        int percentChange = 10;
+
+        //loop through all items in database
+        while( /* not finished looping through database */ )
+        {
+            Stock theStock = null; //stock from database
+
+            double openPrice = theStock.getOpenPrice();
+            double closePrice = theStock.getClosePrice();
+
+            double percentReturn = (closePrice - openPrice) / openPrice * 100.0;
+
+            if( percentReturn > percentChange )
+            {
+                //put stock in listview
+                    //-> display all info
+                //show change in % in the same row too
+            }
+
+            //move on to next stock
+        }
+    }
+
     //TODO: everything.
     /*List of ideas
     * top x% gainers/losers of the day
@@ -28,4 +59,6 @@ public class ScreenerActivity extends Activity{
     * open/close up/down
     *   open/close up/down on 1/2/3/...n days etc.
      */
+
+
 }

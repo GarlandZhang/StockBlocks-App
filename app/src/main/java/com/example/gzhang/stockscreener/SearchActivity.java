@@ -132,14 +132,6 @@ public class SearchActivity extends Activity {
             {
                 Toast.makeText( getApplicationContext(), "PSYCHE, THAT'S THE WRONG SYMBOL!", Toast.LENGTH_LONG).show();
 
-
-
-
-
-
-
-
-
             }
             else
             {
