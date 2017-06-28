@@ -128,13 +128,22 @@ public class SearchActivity extends Activity {
 
                 Toast.makeText( getApplicationContext(), "Here is the quote for: " + theStock.getTickerSymbol() + ".", Toast.LENGTH_SHORT).show();
             }
-            else if( quoteTitleTV.getText().toString().equals( theStock.getName() ) )
+            else if( theStock == null )
             {
-                Toast.makeText( getApplicationContext(), "Current data shown is the quote for: " + theStock.getTickerSymbol() + ".", Toast.LENGTH_LONG).show();
+                Toast.makeText( getApplicationContext(), "PSYCHE, THAT'S THE WRONG SYMBOL!", Toast.LENGTH_LONG).show();
+
+
+
+
+
+
+
+
+
             }
             else
             {
-                Toast.makeText( getApplicationContext(), "PSYCHE, THAT'S THE WRONG SYMBOL!", Toast.LENGTH_LONG).show();
+                Toast.makeText( getApplicationContext(), "Current data shown is the quote for: " + theStock.getTickerSymbol() + ".", Toast.LENGTH_LONG).show();
             }
         }
     }
