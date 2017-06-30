@@ -31,7 +31,7 @@ public class ScreenerActivity extends Activity{
         int percentChange = 10;
 
         //loop through all items in database
-        while( /* not finished looping through database */ )
+        while( true/* not finished looping through database */ )
         {
             Stock theStock = null; //stock from database
 
@@ -40,7 +40,7 @@ public class ScreenerActivity extends Activity{
 
             double percentReturn = (closePrice - openPrice) / openPrice * 100.0;
 
-            if( percentReturn > percentChange )
+            if( positiveOrNegative.equals( "POSITIVE" ) && percentReturn >= percentChange || positiveOrNegative.equals( "NEGATIVE" ) && percentReturn <= percentChange )
             {
                 //put stock in listview
                     //-> display all info

@@ -6,11 +6,17 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.text.Html;
+import android.text.method.LinkMovementMethod;
 import android.util.Log;
 import android.view.View;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.ListAdapter;
+import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -21,10 +27,16 @@ import com.amazonaws.regions.Region;
 import com.amazonaws.regions.Regions;
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClient;
 
+import java.io.BufferedReader;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Scanner;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -33,6 +45,7 @@ import org.jsoup.nodes.Attributes;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
+import org.w3c.dom.Text;
 
 /**
  * Created by GZhang on 2017-06-05.
@@ -48,6 +61,8 @@ public class SearchActivity extends Activity {
     EditText stockTickerET;
 
     ImageView stockChartIV, logoIV;
+
+    ListView newsLV;
 
     DynamoDBMapper mapper;
 
@@ -71,6 +86,8 @@ public class SearchActivity extends Activity {
 
         stockChartIV = (ImageView) findViewById(R.id.stockChartIV);
         logoIV = (ImageView) findViewById(R.id.logoIV);
+
+        newsLV = (ListView) findViewById(R.id.newsLV);
 
         //TODO: condense code...pass mapper object through activities without writing this over and over again
         // Initialize the Amazon Cognito credentials provider
@@ -99,7 +116,11 @@ public class SearchActivity extends Activity {
 
     public void onSearchPress(View view) {
 
-        String tickerSymbol = stockTickerET.getText().toString().toUpperCase();
+        String stockTickerETText = stockTickerET.getText().toString().toUpperCase();
+
+        Scanner sc = new Scanner( stockTickerETText );
+
+        String tickerSymbol = sc.next();
 
         new DataDisplayer().execute( tickerSymbol );
     }
@@ -124,7 +145,8 @@ public class SearchActivity extends Activity {
                 quoteTitleTV.setText( theStock.getName() );
 
                 //load stock chart
-                new ChartAndLogoRetriever().execute( theStock.getTickerSymbol() );
+                new ChartAndLogoRetriever( theStock ).execute();
+                new NewsRetriever( theStock ).execute();
 
                 Toast.makeText( getApplicationContext(), "Here is the quote for: " + theStock.getTickerSymbol() + ".", Toast.LENGTH_SHORT).show();
             }
@@ -140,16 +162,20 @@ public class SearchActivity extends Activity {
         }
     }
 
-
-    //TODO: fix this inefficient use of AsyncTask. *Note: WHY IS IT CALLED DataDisplayer STILL.... ITS NOT EVEN JSON RELATED.
-    private class ChartAndLogoRetriever extends AsyncTask< String, Void, Bitmap[] >
+    private class ChartAndLogoRetriever extends AsyncTask< Void, Void, Bitmap[] >
     {
+        Stock theStock;
+
+        private ChartAndLogoRetriever( Stock theStock )
+        {
+            this.theStock = theStock;
+        }
 
         @Override
-        protected Bitmap[] doInBackground(String... params) {
+        protected Bitmap[] doInBackground( Void...params ) {
             try {
 
-                String webSiteURL = "http://www.nasdaq.com/symbol/" + params[0].toLowerCase() + "/stock-chart?intraday=on&timeframe=intra&splits=off&earnings=off&movingaverage=None&lowerstudy=volume&comparison=off&index=&drilldown=off";
+                String webSiteURL = "http://www.nasdaq.com/symbol/" + theStock.getTickerSymbol().toLowerCase() + "/stock-chart?intraday=on&timeframe=intra&splits=off&earnings=off&movingaverage=None&lowerstudy=volume&comparison=off&index=&drilldown=off";
 
                 //Connect to the website and get the html
                 Document doc = Jsoup.connect(webSiteURL).get();
@@ -160,17 +186,15 @@ public class SearchActivity extends Activity {
                 Element el = img.get(3);
 
                 Bitmap[] bitmaps = new Bitmap[ 2 ];
-                
+
+                //checks if it does not contain this url. This means this is a logo
                 if (!el.absUrl("src").contains("http://charting.nasdaq.com")) {
 
                     bitmaps[1] = getBitmap(el);
                     el = img.get(4);
                 }
-                else
-                {
-                    bitmaps[ 1 ] = null;
-                }
 
+                //this is for the chart
                 bitmaps[0] = getBitmap(el);
 
                 return bitmaps;
@@ -206,6 +230,7 @@ public class SearchActivity extends Activity {
 
         @Override
         protected void onPostExecute(Bitmap[] bitmaps ) {
+
             stockChartIV.setImageBitmap( bitmaps[ 0 ] );
             
             if( bitmaps[ 1 ] != null )
@@ -218,22 +243,97 @@ public class SearchActivity extends Activity {
             }
         }
     }
-/*
-    private class NameRetriever extends AsyncTask<String, Void, String>
+
+    private class NewsRetriever extends AsyncTask< Void, Void, Void >
     {
 
+        Stock theStock;
+
+        ArrayList<String> newsLinks,
+                 titles;
+
+        private NewsRetriever( Stock theStock )
+        {
+            this.theStock = theStock;
+            newsLinks = new ArrayList<String>();
+            titles = new ArrayList<String>();
+        }
+
         @Override
-        protected String doInBackground(String... params) {
+        protected Void doInBackground(Void... params) {
 
-            try
-            {
-                Document doc = Jsoup.connect("https://finance.yahoo.com/quote/" + params[ 0 ] ).get();
-                String title = doc.title();
-                title = title.substring( title.indexOf( "for" ) + 4, title.lastIndexOf( '-' ) );
+            try {
+                String link = "https://feeds.finance.yahoo.com/rss/2.0/headline?s=" + theStock.getTickerSymbol() + "&region=US&lang=en-US";
+                URL resURL = new URL(link);
+                BufferedReader in = new BufferedReader(new InputStreamReader(resURL.openStream()));
+                String line;
 
-                return title;
+                while ((line = in.readLine()) != null) {
 
-            }catch( Exception e )
+                    String title = "",
+                            linkURL = "";
+
+                    if (line.contains("<item>")) {
+
+                        boolean isTitle = false,
+                                isLink = false;
+
+                        while( !(line = in.readLine() ).contains( "</item>" ) && line != null )
+                        {
+                            //get string between <title> and </title>
+                            if( line.contains( "<title>" ) )
+                            {
+                                isTitle = true;
+                            }
+
+                            if( line.contains( "</title>" ) )
+                            {
+                                isTitle = false;
+                                title = title + line;
+                                int firstPos = line.indexOf("<title>");
+                                int lastPos = line.indexOf("</title>");
+                                title = line.substring(firstPos, lastPos);
+                                title = title.replace("<title>", "");
+                                titles.add( title );
+                            }
+
+                            if( isTitle )
+                            {
+                                title = title + line;
+                            }
+
+
+                            //get string between <link> and </link>
+                            if( line.contains( "<link>" ) )
+                            {
+                                isLink = true;
+                            }
+
+                            if( line.contains( "</link>" ) )
+                            {
+                                isLink = false;
+                                linkURL = linkURL + line;
+                                int firstPos = line.indexOf("<link>");
+                                int lastPos = line.indexOf("</link>");
+                                linkURL = line.substring(firstPos, lastPos);
+                                linkURL = linkURL.replace("<link>", "");
+                                newsLinks.add( linkURL );
+                            }
+
+                            if( isLink )
+                            {
+                                linkURL = linkURL + line;
+                            }
+
+                        }
+                    }
+
+                }
+
+                in.close();
+
+            }
+            catch( Exception e )
             {
                 e.printStackTrace();
             }
@@ -242,11 +342,19 @@ public class SearchActivity extends Activity {
         }
 
         @Override
-        protected void onPostExecute(String title ) {
+        protected void onPostExecute(Void aVoid) {
 
-            quoteTitleTV.setText( title );
+            ListAdapter listAdapter = new ArrayAdapter<String>( getApplicationContext(),android.R.layout.simple_list_item_1, titles );
 
+            newsLV.setAdapter( listAdapter );
+
+            newsLV.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+                @Override
+                public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                    Toast.makeText( getApplicationContext(), "Go to this website: " + newsLinks.get( position ), Toast.LENGTH_LONG ).show();
+                }
+            });
         }
     }
-    */
 }
+
