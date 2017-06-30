@@ -4,6 +4,14 @@ import android.app.Activity;
 import android.os.Bundle;
 import android.view.View;
 
+import com.amazonaws.services.dynamodbv2.AmazonDynamoDB;
+import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClientBuilder;
+import com.amazonaws.services.dynamodbv2.document.BatchGetItemOutcome;
+import com.amazonaws.services.dynamodbv2.document.DynamoDB;
+import com.amazonaws.services.dynamodbv2.document.Item;
+import com.amazonaws.services.dynamodbv2.document.TableKeysAndAttributes;
+import com.amazonaws.services.dynamodbv2.model.KeysAndAttributes;
+
 /**
  * Created by GZhang on 2017-06-05.
  */
@@ -25,6 +33,10 @@ public class ScreenerActivity extends Activity{
     }
 
     public void onOpenChangePress(View view) {
+
+        AmazonDynamoDB client = AmazonDynamoDBClientBuilder.standard().build();
+        DynamoDB dynamoDB = new DynamoDB(client);
+
 
         //TODO: temporary settings
         String positiveOrNegative = "POSITIVE";
