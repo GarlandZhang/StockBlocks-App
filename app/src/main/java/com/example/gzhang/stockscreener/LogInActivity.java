@@ -64,4 +64,18 @@ public class LogInActivity extends Activity{
         startActivity (intent);
 
     }
+
+    /*
+    onLoginClick
+
+    get the fields of userNameEditText and passwordEditText
+
+    check if userName already exists in database...if returns null, then create new entry, else create a message that says this is already taken
+
+    set userName as hashkey, set password as attribute
+
+    redirect to main activity
+    -> set isEnabled for the login button to be false
+
+     */
 }
