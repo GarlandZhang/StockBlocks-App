@@ -36,19 +36,19 @@ import java.util.Scanner;
  * Created by leon_ on 2017-06-29.
  */
 
-public class LogInActivity extends Activity{
+        public class LogInActivity extends Activity{
 
-    Button loginButton,
-            createaccountButton;
+            Button loginButton,
+                    createaccountButton;
 
-    CheckBox rememberBox;
+            CheckBox rememberBox;
 
-    String usernameText,
-            passwordText;
+            String usernameText,
+                    passwordText;
 
 
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
+            @Override
+            protected void onCreate(Bundle savedInstanceState) {
             super.onCreate(savedInstanceState);
             setContentView(R.layout.login_layout);
 

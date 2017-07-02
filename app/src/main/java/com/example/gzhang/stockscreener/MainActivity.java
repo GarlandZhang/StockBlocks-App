@@ -31,6 +31,8 @@ import java.util.Scanner;
 *   ie: a news article mentioning "earnings" for "APPL".
 * */
 
+//I like cheese
+
 public class MainActivity extends AppCompatActivity {
 
     //UI
