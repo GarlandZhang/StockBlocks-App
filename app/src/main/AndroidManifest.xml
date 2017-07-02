@@ -34,6 +34,16 @@
         <activity android:name=".AboutActivity">
 
         </activity>
+        
+         <activity android:name=".LogInActivity">
+
+        </activity>
+        
+         <activity android:name=".CreateAccountActivity">
+
+        </activity>
+        
+        
     </application>
 
 </manifest>
