@@ -34,7 +34,7 @@ import java.util.Scanner;
 //I like cheese
 //This is a test
 //Comment
-
+//PSYCHE, THATS THE WRONG COMENT
 public class MainActivity extends AppCompatActivity {
 
     //UI
