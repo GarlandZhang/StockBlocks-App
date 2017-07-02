@@ -41,8 +41,15 @@
     <Button
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="ABOUT"
+        android:text="LOG IN"
+        android:id="@+id/loginButton"
+        android:onClick="onLoginClick"/>
+
+    <Button
         android:id="@+id/aboutButton"
-        android:onClick="onAboutClick"/>
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:onClick="onAboutClick"
+        android:text="ABOUT" />
 
 </LinearLayout>
