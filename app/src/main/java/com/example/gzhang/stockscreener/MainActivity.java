@@ -35,7 +35,8 @@ public class MainActivity extends AppCompatActivity {
 
     //UI
     Button searchButton,
-            screenerButton;
+            screenerButton,
+            loginButton;
 
     //DynamoDBMapper mapper;
 
@@ -47,6 +48,7 @@ public class MainActivity extends AppCompatActivity {
         //initialize UI
         screenerButton = (Button) findViewById(R.id.screenerButton);
         searchButton = (Button) findViewById(R.id.searchButton);
+        loginButton = (Button) findViewById(R.id.searchButton);
 
         /*
         //AWS setup
@@ -246,6 +248,12 @@ public class MainActivity extends AppCompatActivity {
 
         Intent intent = new Intent(this, ScreenerActivity.class);
         startActivity( intent );
+    }
+
+    public void onLoginClick (View view) {
+        Intent intent = new Intent(this, LogInActivity.class);
+        startActivity( intent );
+
     }
 
     public void onAboutClick(View view) {
