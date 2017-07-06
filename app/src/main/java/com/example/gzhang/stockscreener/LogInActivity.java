@@ -15,13 +15,15 @@ import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.CheckBox;
 
-/*
+
 import com.amazonaws.ClientConfiguration;
 import com.amazonaws.auth.CognitoCachingCredentialsProvider;
 import com.amazonaws.regions.Region;
 import com.amazonaws.regions.Regions;
 import com.amazonaws.services.dynamodbv2.*;
 import com.amazonaws.mobileconnectors.dynamodbv2.dynamodbmapper.*;
+
+import org.w3c.dom.Text;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -30,7 +32,8 @@ import java.net.URL;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Scanner;
-*/
+import java.lang.String;
+
 
 /**
  * Created by leon_ on 2017-06-29.
@@ -38,13 +41,18 @@ import java.util.Scanner;
 
         public class LogInActivity extends Activity{
 
+            TextView textview2;
+
             Button loginButton,
                     createaccountButton;
 
+            EditText usernameText,
+                        passwordText;
+
             CheckBox rememberBox;
 
-            String usernameText,
-                    passwordText;
+            String username,
+                    password;
 
 
             @Override
@@ -53,8 +61,14 @@ import java.util.Scanner;
             setContentView(R.layout.login_layout);
 
 
+        textview2 = (TextView)findViewById(R.id.textView2);
+
         loginButton = (Button) findViewById(R.id.loginButton);
         createaccountButton = (Button) findViewById(R.id.createaccountButton);
+
+        usernameText = (EditText)findViewById(R.id.usernameText);
+        passwordText = (EditText)findViewById(R.id.passwordText);
+
         rememberBox = (CheckBox) findViewById(R.id.rememberBox);
 
     }
@@ -62,6 +76,22 @@ import java.util.Scanner;
     protected void onAccountClick (View view){
         Intent intent = new Intent (this, CreateAccountActivity.class);
         startActivity (intent);
+
+    }
+
+    protected void onLoginClick (View view){
+
+        username = usernameText.getText().toString();
+
+        password = passwordText.getText().toString();
+
+        textview2.setText(username + " " + password);
+
+        if (username.equals("hi") && password.equals("hi")){
+
+            textview2.setText("success");
+        }
+
 
     }
 
