@@ -41,7 +41,7 @@ import java.lang.String;
 
         public class LogInActivity extends Activity{
 
-            TextView textview2;
+            TextView loginText;
 
             Button loginButton,
                     createaccountButton;
@@ -61,7 +61,7 @@ import java.lang.String;
             setContentView(R.layout.login_layout);
 
 
-        textview2 = (TextView)findViewById(R.id.textView2);
+        loginText = (TextView)findViewById(R.id.loginText);
 
         loginButton = (Button) findViewById(R.id.loginButton);
         createaccountButton = (Button) findViewById(R.id.createaccountButton);
@@ -85,14 +85,12 @@ import java.lang.String;
 
         password = passwordText.getText().toString();
 
-        textview2.setText(username + " " + password);
-
         if (username.equals("hi") && password.equals("hi")){
 
-            textview2.setText("success");
+            loginText.setText("Login Success");
+        }else{
+            loginText.setText("Login Failed");
         }
-
-
     }
 
     /*
