@@ -58,10 +58,10 @@
             android:layout_width="193dp"
             android:layout_height="wrap_content"
             android:text="Create Account"
-            android:id="@+id/createaccountButton"
+            android:id="@+id/createAccountButton"
             android:layout_gravity="center_horizontal"
             android:textSize="19sp"
-            android:onClick="onAccountClick"/>
+            android:onClick="onCreateAccountClick"/>
 
     </LinearLayout>
 
