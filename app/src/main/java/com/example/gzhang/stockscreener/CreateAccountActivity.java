@@ -14,6 +14,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.CheckBox;
+import android.widget.EditText;
 
 /*
 import com.amazonaws.ClientConfiguration;
@@ -37,13 +38,23 @@ import java.util.Scanner;
  * Created by leon_ on 2017-06-30.
  */
 
-public class CreateAccountActivity extends Activity {
+    public class CreateAccountActivity extends Activity {
 
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.createaccount_layout);
+        EditText usernameText,
+                    passwordText1,
+                    passwordText2;
+
+        Button createAccountButton;
+
+        @Override
+        protected void onCreate(Bundle savedInstanceState)
+            {super.onCreate(savedInstanceState);
+            setContentView(R.layout.createaccount_layout);
 
 
+        usernameText = (EditText) findViewById(R.id.usernameText);
+        passwordText1 = (EditText) findViewById(R.id.passwordText1);
+        passwordText2 = (EditText) findViewById(R.id.passwordText2);
+
+            }
     }
-}

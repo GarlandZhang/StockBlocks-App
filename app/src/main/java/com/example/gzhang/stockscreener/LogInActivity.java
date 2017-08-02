@@ -39,43 +39,39 @@ import java.lang.String;
  * Created by leon_ on 2017-06-29.
  */
 
-        public class LogInActivity extends Activity{
+    public class LogInActivity extends Activity{
 
-            TextView textview2;
+        TextView loginText;
 
-            Button loginButton,
-                    createaccountButton;
+        Button loginButton,
+                createAccountButton;
 
-            EditText usernameText,
-                        passwordText;
+        EditText usernameText,
+                passwordText;
 
-            CheckBox rememberBox;
+        CheckBox rememberBox;
 
-            String username,
-                    password;
+        String username,
+                password;
+
+        Profile profile;
 
 
-            @Override
-            protected void onCreate(Bundle savedInstanceState) {
-            super.onCreate(savedInstanceState);
+        @Override
+        protected void onCreate(Bundle savedInstanceState)
+            {super.onCreate(savedInstanceState);
             setContentView(R.layout.login_layout);
 
 
-        textview2 = (TextView)findViewById(R.id.textView2);
+        loginText = (TextView)findViewById(R.id.loginText);
 
         loginButton = (Button) findViewById(R.id.loginButton);
-        createaccountButton = (Button) findViewById(R.id.createaccountButton);
+        createAccountButton = (Button) findViewById(R.id.createAccountButton);
 
         usernameText = (EditText)findViewById(R.id.usernameText);
         passwordText = (EditText)findViewById(R.id.passwordText);
 
         rememberBox = (CheckBox) findViewById(R.id.rememberBox);
-
-    }
-
-    protected void onAccountClick (View view){
-        Intent intent = new Intent (this, CreateAccountActivity.class);
-        startActivity (intent);
 
     }
 
@@ -85,13 +81,31 @@ import java.lang.String;
 
         password = passwordText.getText().toString();
 
-        textview2.setText(username + " " + password);
+        //String passwordDatabase = profile.getPassword();
 
-        if (username.equals("hi") && password.equals("hi")){
+        String passwordDatabase = "hi";
 
-            textview2.setText("success");
+        try {
+
+            if (password.equals(passwordDatabase)) {
+
+                Toast.makeText(getApplicationContext(), "Login Successful", Toast.LENGTH_LONG).show();
+
+                finish();
+
+            } else {
+
+                Toast.makeText(getApplicationContext(), "Username or Password Incorrect", Toast.LENGTH_LONG).show();
+
+            }
+        }finally{
         }
+    }
 
+    public void onCreateAccountClick (View view){
+
+            Intent intent = new Intent (this, CreateAccountActivity.class);
+            startActivity (intent);
 
     }
 
