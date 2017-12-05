@@ -1,8 +1,12 @@
 # StockQuoteApp
 
-This mobile Android app was designed to simplify looking for stocks by providing a quote look-up and stock screener (looks at stocks based on certain parameters. E.g.; >$50 only). In the quote feature, when a user enters a ticker symbol, that quote data is taken from an AWS database, which my friend and I created, and displays this data. This includes basic features such as open/close price, day high/low, and more complex features including news and intraday chart. The screener program (currently in development) would filter out all stocks that we had on the database to locate those that fit a certain criteria, which is inputted by the user. Overall, this app was fun to build with my friend and I hope to do more projects like this in the future. 
+Description: An Android App providing end of day stock information for over 3000+ companies trading on the Nasdaq, AMEX, or NYSE. This includes data such as open price, close price, high of day price, low of day price, stock logo (if available), day chart, and more.
 
-APIs used: Quandl, REST
+Tools/Frameworks/Databases/APIs used: 
+Using the RESTful API, we gathered stock data from the Quandl website.
+We reformatted the data and stored it into our DynamoDB database (AWS). 
+Using jsoup, we collected additional data not provided by Quandl, such as stock logo, charts, and newsfeeds, by webscraping data from Yahoo Finance. 
 
-Database: AWS DynamoDB
+TODO: we hope to implement our own stock screener, a handy tool that filters for stocks based on certain parameters. For example, we want to filter for all stocks that are <$3, gained 10% in the past week, and have a market share of over $3 billion.
 
+Reflection: I had a lot of fun building this app with my friend. I hope to do more app projects in the future.
