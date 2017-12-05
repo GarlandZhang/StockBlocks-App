@@ -1,6 +1,6 @@
 # StockBlocks-App
 
-Description: An Android App providing end of day stock information for over 3000+ companies trading on the Nasdaq, AMEX, or NYSE. This includes data such as open price, close price, high of day price, low of day price, stock logo (if available), day chart, and more.
+How to use: Upon opening the app, you will be at the main menu. Navigate to the 'Search stock' page. Enter the ticker symbol you wish to gather information about. After pressing the search button, you will be given common quote info about the stock as well as any relevant newsfeeds, charts, and logo.
 
 Tools/Frameworks/Databases/APIs used: 
 Using the RESTful API, we gathered stock data from the Quandl website.
