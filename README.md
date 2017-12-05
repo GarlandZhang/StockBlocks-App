@@ -1,4 +1,4 @@
-# StockQuoteApp
+# StockBlocks-App
 
 Description: An Android App providing end of day stock information for over 3000+ companies trading on the Nasdaq, AMEX, or NYSE. This includes data such as open price, close price, high of day price, low of day price, stock logo (if available), day chart, and more.
 
